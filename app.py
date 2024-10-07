@@ -2,9 +2,14 @@ from aiohttp import web
 from botbuilder.core import BotFrameworkAdapterSettings, BotFrameworkAdapter
 from botbuilder.schema import Activity
 from bot import MyTeamsBot
+import os
+from dotenv import load_dotenv
 
-APP_ID = ""
-APP_PASSWORD = ""
+
+load_dotenv()
+
+APP_ID = os.getenv('APP_ID', None)
+APP_PASSWORD = os.getenv('APP_PASSWORD', None)
 
 SETTINGS = BotFrameworkAdapterSettings(APP_ID, APP_PASSWORD)
 ADAPTER = BotFrameworkAdapter(SETTINGS)
