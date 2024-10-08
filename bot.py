@@ -53,8 +53,15 @@ class MyTeamsBot(ActivityHandler):
             ) as response:
                 if response.status == 201:
                     answer_data = await response.json()
-                    soup = BeautifulSoup(answer_data['output'], features="html.parser").get_text('\n')
-                    return soup
+                    main_answer = answer_data['output'].strip()
+                    main_answer = ' '.join(main_answer.split()) 
+                    soup = BeautifulSoup(main_answer, features="html.parser").get_text('\n')
+                    # return soup
+                if 'citations' in answer_data:
+                    citations_text = "Refrences:\n\n"
+                    for citation in answer_data['citations']:
+                        citations_text += f"[{citation['superscript']}] {citation['quote']} (File: {citation['filename']}, Page: {citation['page_number']})\n\n"
+                    return f'{soup}\n\n{citations_text}'
                 else:
                     raise Exception(f"Failed to get an answer. Status code: {response.status}")
 
