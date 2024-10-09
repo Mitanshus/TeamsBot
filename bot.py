@@ -82,7 +82,7 @@ class MyTeamsBot(ActivityHandler):
                         return f'{clean_markdown}\n\n{citations_text}'
                     return clean_markdown
                 else:
-                    raise Exception(f"Failed to get an answer. Status code: {response.status}")
+                    raise Exception(f"Error occured")
 
     async def on_members_added_activity(self, members_added, turn_context: TurnContext):
         for member in members_added:
