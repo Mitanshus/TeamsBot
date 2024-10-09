@@ -2,6 +2,8 @@ import asyncio
 from botbuilder.core import TurnContext, ActivityHandler
 from botbuilder.schema import Activity, ActivityTypes
 import aiohttp
+from html import escape
+import re
 from bs4 import BeautifulSoup
 from auth import create_access_token
 from dotenv import load_dotenv
@@ -33,7 +35,10 @@ class MyTeamsBot(ActivityHandler):
         question = turn_context.activity.text
         try:
             answer = await self.get_answer_from_backend(question)
-            await turn_context.send_activity(f"Answer: {answer}")
+            await turn_context.send_activity(Activity(
+                    type=ActivityTypes.message,
+                    text=answer,
+                ))
         except Exception as e:
             await turn_context.send_activity(f"An error occurred: {str(e)}")
 
@@ -53,14 +58,27 @@ class MyTeamsBot(ActivityHandler):
             ) as response:
                 if response.status == 201:
                     answer_data = await response.json()
+                    print(answer_data)
+                    
                     main_answer = answer_data['output'].strip()
-                    main_answer = ' '.join(main_answer.split()) 
+                    # Convert some HTML tags to Teams-compatible format
+                    #HTML <strong> tags to bold markdown
+                    main_answer = re.sub(r'<strong>(.*?)</strong>', r'**\1**', main_answer)
+                    # HTML <em> tags to italic markdown
+                    main_answer = re.sub(r'<em>(.*?)</em>', r'*\1*', main_answer)
+                    # HTML <sub> tags to superscript markdown
+                    main_answer = re.sub(r'<sup>\[(\d+)\]</sup>', r'^[\1]^', main_answer)
+                    #removes ^
+                    main_answer = re.sub(r'\^', '', main_answer)
                     soup = BeautifulSoup(main_answer, features="html.parser").get_text('\n')
                     # return soup
                 if 'citations' in answer_data:
-                    citations_text = "Refrences:\n\n"
+                    citations_text = "**References:**\n\n"
                     for citation in answer_data['citations']:
-                        citations_text += f"[{citation['superscript']}] {citation['quote']} (File: {citation['filename']}, Page: {citation['page_number']})\n\n"
+                        citation_text = (f"[{citation['superscript']}] {escape(citation['quote'].strip())} "
+                                         f"Filename: **{citation['filename']}**, page number: {citation['page_number']}")
+                        citations_text += citation_text + "\n\n"
+                        
                     return f'{soup}\n\n{citations_text}'
                 else:
                     raise Exception(f"Failed to get an answer. Status code: {response.status}")
