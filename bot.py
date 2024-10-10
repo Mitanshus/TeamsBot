@@ -64,9 +64,10 @@ class MyTeamsBot(ActivityHandler):
                     main_answer = answer_data['output'].strip()
                     
                     # Convert HTML to Markdown
-                    h = html2text.HTML2Text()
-                    h.ignore_links = False
-                    markdown_answer = h.handle(main_answer)
+                    marked_text = html2text.HTML2Text()
+                    marked_text.ignore_links = False
+                    marked_text.body_width = 0
+                    markdown_answer = marked_text.handle(main_answer)
                     
                     # Remove any remaining HTML tags
                     soup = BeautifulSoup(markdown_answer, features="html.parser")
@@ -82,7 +83,7 @@ class MyTeamsBot(ActivityHandler):
                         return f'{clean_markdown}\n\n{citations_text}'
                     return clean_markdown
                 else:
-                    raise Exception(f"Error occured")
+                    raise Exception(f"There seems to be an issue. Please try again later")
 
     async def on_members_added_activity(self, members_added, turn_context: TurnContext):
         for member in members_added:
