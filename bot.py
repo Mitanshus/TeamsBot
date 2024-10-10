@@ -58,9 +58,7 @@ class MyTeamsBot(ActivityHandler):
                 timeout=timeout
             ) as response:
                 if response.status == 201:
-                    answer_data = await response.json()
-                    print(answer_data)
-                    
+                    answer_data = await response.json()                    
                     main_answer = answer_data['output'].strip()
                     
                     # Convert HTML to Markdown
@@ -73,7 +71,7 @@ class MyTeamsBot(ActivityHandler):
                     soup = BeautifulSoup(markdown_answer, features="html.parser")
                     clean_markdown = soup.get_text('\n')
                     
-                    if 'citations' in answer_data:
+                    if 'citations' in answer_data and len(answer_data['citations']) > 0:
                         citations_text = "**References:**\n\n"
                         for citation in answer_data['citations']:
                             citation_text = (f"[{citation['superscript']}] {citation['quote'].strip()} "
